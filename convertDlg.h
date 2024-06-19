@@ -17,6 +17,17 @@
 #include <locale> 
 #include <iomanip>
 
+struct convert_task {
+	int* status_p;
+	std::string infname;
+	std::string midname;
+	std::string outfname;
+	int cur_task_status;
+	std::string cv;
+	std::string crf;
+	std::string ca;
+	std::string ba;
+};
 // CconvertDlg 对话框
 class CconvertDlg : public CDialogEx
 {
@@ -50,9 +61,12 @@ protected:
 	std::vector<std::wstring> search_list;
 	std::vector<std::wstring> filter_list;
 	std::vector<std::wstring> select_list;
+	std::vector<std::wstring> fail_list;
 	std::vector<std::wstring> search_list_f;
 	std::vector<std::wstring> filter_list_f;
 	std::vector<std::wstring> select_list_f;
+	std::vector<std::wstring> fail_list_f;
+
 
 	void ListFilesInDirectory(const std::wstring& path);
 	void FilterFiles(const std::wstring& f_format);
@@ -70,12 +84,36 @@ public:
 	CListBox m_list_filter;
 	afx_msg void OnBnClickedButtonSelect();
 	CListBox m_selected_list;
+	CListBox m_failed_list;
 	afx_msg void OnBnClickedButtonClear2();
-	afx_msg void OnBnClickedButtonClear3();
+
+
 	afx_msg void OnBnClickedButtonConvert();
 	afx_msg void OnBnClickedButtonSaveFolder();
 	CButton m_save_same_path;
 	CComboBox m_save_format;
+	CComboBox m_cv_format;
+	CComboBox m_crf_format;
+	CComboBox m_ca_format;
+	CComboBox m_ba_format;
 	CButton m_check_rename_index;
 	int m_index = 1;
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+
+	int convert_status = 0;
+	CWinThread* pThread;
+	convert_task cur_task;
+
+	void UpdateSelectedList();
+	void UpdateFailedList();
+	afx_msg void OnLbnSelchangeSearchList();
+	CListBox m_list_failed;
+	//afx_msg void OnBnClickedButtonClear4();
+	afx_msg void OnBnClickedButtonClear4();
+	afx_msg void OnBnClickedButtonBack();
+
+
 };
+
+UINT ConvertThread(LPVOID pParam);
+int cmd_convert(std::string infname, std::string outfname, std::string cv, std::string crf, std::string ca, std::string ba);

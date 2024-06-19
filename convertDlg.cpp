@@ -63,13 +63,20 @@ void CconvertDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_COMBO_FORMAT, m_combo_format);
 	DDX_Control(pDX, IDC_SEARCH_LIST, m_list_filter);
 	DDX_Control(pDX, IDC_SELECT_LIST, m_selected_list);
+	DDX_Control(pDX, IDC_FAILED_LIST2, m_failed_list);
 	DDX_Control(pDX, IDC_CHECK_SAME_PATH, m_save_same_path);
 	DDX_Control(pDX, IDC_COMBO_FORMAT2, m_save_format);
+	DDX_Control(pDX, IDC_COMBO_CV, m_cv_format);
+	DDX_Control(pDX, IDC_COMBO_CRF, m_crf_format);
+	DDX_Control(pDX, IDC_COMBO_CA, m_ca_format);
+	DDX_Control(pDX, IDC_COMBO_BA, m_ba_format);
 	DDX_Control(pDX, IDC_CHECK_RENAME, m_check_rename_index);
-
 }
 
 BEGIN_MESSAGE_MAP(CconvertDlg, CDialogEx)
+	ON_WM_SYSCOMMAND()
+	ON_WM_PAINT()
+	ON_WM_TIMER()
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
@@ -83,6 +90,7 @@ BEGIN_MESSAGE_MAP(CconvertDlg, CDialogEx)
 
 	ON_BN_CLICKED(IDC_BUTTON_CONVERT, &CconvertDlg::OnBnClickedButtonConvert)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE_FOLDER, &CconvertDlg::OnBnClickedButtonSaveFolder)
+
 END_MESSAGE_MAP()
 
 
@@ -121,7 +129,15 @@ BOOL CconvertDlg::OnInitDialog()
 
 	m_combo_format.SetCurSel(0);
 	m_save_format.SetCurSel(0);
+	m_cv_format.SetCurSel(1);
+	m_crf_format.SetCurSel(0);
+	m_ca_format.SetCurSel(0);
+	m_ba_format.SetCurSel(0);
+	SetTimer(1, 1000, NULL);
 
+
+	cur_task.status_p = &convert_status;
+	cur_task.cur_task_status = 0;
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -416,96 +432,43 @@ void CconvertDlg::OnBnClickedButtonClear2()
 }
 
 
-void CconvertDlg::OnBnClickedButtonClear3()
-{
-	// TODO: 在此添加控件通知处理程序代码
-}
+
 
 
 void CconvertDlg::OnBnClickedButtonConvert()
 {
-	// TODO: 在此添加控件通知处理程序代码\
+	// TODO: 在此添加控件通知处理程序代码
 
-	std::wstring infname, outfname,midfname;
-	//std::string infname_s, outfname_s;
-	CString str_i_f, str_o_f;
-	std::wstring i_f, o_f,m_f;
-	
-	//m_f = "flv";
-	int nSel = m_combo_format.GetCurSel();
-	if (nSel != CB_ERR)
+	switch (convert_status)
 	{
-
-		m_combo_format.GetLBText(nSel, str_i_f); // 根据索引获取文本	
-		i_f = str_i_f.GetString();
-	}
-
-	nSel = m_save_format.GetCurSel();
-	if (nSel != CB_ERR)
-	{
-
-		m_save_format.GetLBText(nSel, str_o_f); // 根据索引获取文本	
-		o_f = str_o_f.GetString();
-	}
-	
-	SaveFolder = SaveFolder + L"\\";
-	for (int i = 0; i < select_list_f.size(); i++)
-	{
-		if (m_save_same_path.GetCheck())
+	case 0:
+		if (select_list_f.size() > 0)
 		{
-			infname = select_list_f[i];
-			outfname = select_list_f[i];
-			midfname = select_list_f[i];
-
-			if (m_check_rename_index.GetCheck())
+			if (SaveFolder.GetLength() == 0)
 			{
-				outfname.replace(0,outfname.length() - i_f.length()-1, IntToWstring(m_index++));
+				AfxMessageBox(L"选择存储路径");
+				OnBnClickedButtonSaveFolder();
 			}
 			
-			outfname.replace(outfname.length() - i_f.length(), i_f.length(), o_f);
-			
-			
-
-			midfname.replace(outfname.length() - i_f.length(), i_f.length(), L"flv");
-		}
-		else
-		{
-			infname = select_list_f[i];
-			outfname = select_list[i];
-			midfname = select_list[i];
-			if (m_check_rename_index.GetCheck())
 			{
-				outfname.replace(0, outfname.length() - i_f.length() - 1, IntToWstring(m_index++));				
+				if (SaveFolder.GetAt(SaveFolder.GetLength() - 1) != '\\')
+				{
+					SaveFolder = SaveFolder + L"\\";
+				}
+				
 			}
-			
-			outfname.replace(outfname.length() - i_f.length(), i_f.length(), o_f);
-			
-
-			//outfname.replace(outfname.length() - i_f.length(), i_f.length(), o_f);
-			midfname.replace(outfname.length() - i_f.length(), i_f.length(), L"flv");
-			//SaveFolder = SaveFolder + L"\\";
-			outfname = SaveFolder.GetString()+ outfname;
-			midfname = SaveFolder.GetString() +  midfname;
+			convert_status = 1;
+			GetDlgItem(IDC_BUTTON_CONVERT)->SetWindowTextW(L"STOP");
 		}
-		int size = WideCharToMultiByte(CP_UTF8, 0, infname.c_str(), -1, nullptr, 0, nullptr, nullptr);
-		std::string infname_s(size, 0);
-		WideCharToMultiByte(CP_UTF8, 0, infname.c_str(), -1, &infname_s[0], size, nullptr, nullptr);
+		break;
 
-
-		size = WideCharToMultiByte(CP_UTF8, 0,midfname.c_str(), -1, nullptr, 0, nullptr, nullptr);
-		std::string midfname_s(size, 0);
-		WideCharToMultiByte(CP_UTF8, 0, midfname.c_str(), -1, &midfname_s[0], size, nullptr, nullptr);
-
-		size = WideCharToMultiByte(CP_UTF8, 0, outfname.c_str(), -1, nullptr, 0, nullptr, nullptr);
-		std::string outfname_s(size, 0);
-		WideCharToMultiByte(CP_UTF8, 0, outfname.c_str(), -1, &outfname_s[0], size, nullptr, nullptr);
-		
-
-		remove(outfname_s.c_str());
-		extract_media(infname_s.c_str(), midfname_s.c_str());
-
-		cmd_convert(midfname_s.c_str(), outfname_s.c_str());
-		remove(midfname_s.c_str());
+	case 1:
+		if (select_list_f.size() > 0)
+		{
+			convert_status = 2;
+			GetDlgItem(IDC_BUTTON_CONVERT)->SetWindowTextW(L"CONVERT");
+		}
+		break;
 	}
 	
 }
@@ -580,3 +543,306 @@ std::wstring CconvertDlg::IntToWstring(int value) {
 	return wss.str();
 
 }
+
+void CconvertDlg::OnTimer(UINT_PTR nIDEvent)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+	switch (nIDEvent)
+	{
+	case 1:
+		if (convert_status == 1)// start convert
+		{
+			if (cur_task.cur_task_status != 1)
+			{
+				if (cur_task.cur_task_status == 2)
+				{
+					if (select_list_f.size() >= 1)
+					{
+						select_list.erase(select_list.begin());
+						select_list_f.erase(select_list_f.begin());
+						UpdateSelectedList();
+					}
+					
+				}
+				if (cur_task.cur_task_status == 3)
+				{
+					if (select_list_f.size() >= 1)
+					{
+						fail_list.push_back(select_list[0]);
+						fail_list_f.push_back(select_list_f[0]);
+						select_list.erase(select_list.begin());
+						select_list_f.erase(select_list_f.begin());
+
+						UpdateSelectedList();
+						UpdateFailedList();
+					}
+
+				}
+				if (select_list_f.size() == 0)
+				{
+					UpdateSelectedList();
+					convert_status = 0;
+					GetDlgItem(IDC_BUTTON_CONVERT)->SetWindowTextW(L"CONVERT");
+					cur_task.cur_task_status = 0;
+					return;
+				}
+				std::wstring infname, outfname, midfname;
+				//std::string infname_s, outfname_s;
+				CString str_i_f, str_o_f;
+				std::wstring i_f, o_f, m_f;
+
+				//m_f = "flv";
+				int nSel = m_combo_format.GetCurSel();
+				if (nSel != CB_ERR)
+				{
+
+					m_combo_format.GetLBText(nSel, str_i_f); // 根据索引获取文本	
+					i_f = str_i_f.GetString();
+				}
+
+				nSel = m_save_format.GetCurSel();
+				if (nSel != CB_ERR)
+				{
+
+					m_save_format.GetLBText(nSel, str_o_f); // 根据索引获取文本	
+					o_f = str_o_f.GetString();
+				}
+				
+				
+
+				for (int i = 0; i < 1; i++)
+				{
+					if (m_save_same_path.GetCheck())
+					{
+						infname = select_list_f[i];
+						outfname = select_list_f[i];
+						midfname = select_list_f[i];
+
+						if (m_check_rename_index.GetCheck())
+						{
+							outfname.replace(0, outfname.length() - i_f.length() - 1, IntToWstring(m_index++));
+						}
+
+						outfname.replace(outfname.length() - i_f.length(), i_f.length(), o_f);
+
+
+
+						midfname.replace(midfname.length() - i_f.length(), i_f.length(), L"flv");
+					}
+					else
+					{
+						infname = select_list_f[i];
+						outfname = select_list[i];
+						midfname = select_list[i];
+						if (m_check_rename_index.GetCheck())
+						{
+							outfname.replace(0, outfname.length() - i_f.length() - 1, IntToWstring(m_index++));
+						}
+
+						outfname.replace(outfname.length() - i_f.length(), i_f.length(), o_f);
+
+
+						//outfname.replace(outfname.length() - i_f.length(), i_f.length(), o_f);
+						midfname.replace(midfname.length() - i_f.length(), i_f.length(), L"flv");
+						//SaveFolder = SaveFolder + L"\\";
+						outfname = SaveFolder.GetString() + outfname;
+						midfname = SaveFolder.GetString() + midfname;
+					}
+					int size = WideCharToMultiByte(CP_UTF8, 0, infname.c_str(), -1, nullptr, 0, nullptr, nullptr);
+					std::string infname_s(size, 0);
+					WideCharToMultiByte(CP_UTF8, 0, infname.c_str(), -1, &infname_s[0], size, nullptr, nullptr);
+
+
+					size = WideCharToMultiByte(CP_UTF8, 0, midfname.c_str(), -1, nullptr, 0, nullptr, nullptr);
+					std::string midfname_s(size, 0);
+					WideCharToMultiByte(CP_UTF8, 0, midfname.c_str(), -1, &midfname_s[0], size, nullptr, nullptr);
+
+					size = WideCharToMultiByte(CP_UTF8, 0, outfname.c_str(), -1, nullptr, 0, nullptr, nullptr);
+					std::string outfname_s(size, 0);
+					WideCharToMultiByte(CP_UTF8, 0, outfname.c_str(), -1, &outfname_s[0], size, nullptr, nullptr);
+
+					cur_task.infname = infname_s;
+					cur_task.midname = midfname_s;
+					cur_task.outfname = outfname_s;
+
+					CString temp;
+					std::wstring temp2;
+					nSel = m_cv_format.GetCurSel();
+					if (nSel != CB_ERR)
+					{
+
+						m_cv_format.GetLBText(nSel, temp); // 根据索引获取文本	
+						temp2 = temp.GetString();
+						size = WideCharToMultiByte(CP_UTF8, 0, temp2.c_str(), -1, nullptr, 0, nullptr, nullptr);						
+						WideCharToMultiByte(CP_UTF8, 0, temp2.c_str(), -1, &cur_task.cv[0], size, nullptr, nullptr);
+					}
+					nSel = m_crf_format.GetCurSel();
+					if (nSel != CB_ERR)
+					{
+
+						m_crf_format.GetLBText(nSel, temp); // 根据索引获取文本	
+						temp2 = temp.GetString();
+						size = WideCharToMultiByte(CP_UTF8, 0, temp2.c_str(), -1, nullptr, 0, nullptr, nullptr);
+						WideCharToMultiByte(CP_UTF8, 0, temp2.c_str(), -1, &cur_task.crf[0], size, nullptr, nullptr);
+					}
+					nSel = m_ca_format.GetCurSel();
+					if (nSel != CB_ERR)
+					{
+
+						m_ca_format.GetLBText(nSel, temp); // 根据索引获取文本	
+						temp2 = temp.GetString();
+						size = WideCharToMultiByte(CP_UTF8, 0, temp2.c_str(), -1, nullptr, 0, nullptr, nullptr);
+						WideCharToMultiByte(CP_UTF8, 0, temp2.c_str(), -1, &cur_task.ca[0], size, nullptr, nullptr);
+					}
+					nSel = m_ba_format.GetCurSel();
+					if (nSel != CB_ERR)
+					{
+
+						m_ba_format.GetLBText(nSel, temp); // 根据索引获取文本	
+						temp2 = temp.GetString();
+						size = WideCharToMultiByte(CP_UTF8, 0, temp2.c_str(), -1, nullptr, 0, nullptr, nullptr);
+						WideCharToMultiByte(CP_UTF8, 0, temp2.c_str(), -1, &cur_task.ba[0], size, nullptr, nullptr);
+					}
+
+					cur_task.cur_task_status = 1;
+				}
+				pThread = AfxBeginThread(ConvertThread, (LPVOID)&cur_task);
+				if (pThread == NULL)
+				{
+					AfxThrowMemoryException(); // 如果无法创建线程，则抛出异常  
+				}
+				
+			}
+		
+		}
+		if (convert_status == 2)
+		{
+			if (cur_task.cur_task_status != 1)
+			{
+				convert_status = 0;
+			}
+			
+		}
+		break;
+	default:
+		break;
+	}
+	CDialogEx::OnTimer(nIDEvent);
+}
+
+UINT ConvertThread(LPVOID pParam)
+{
+	// 在这里编写线程的代码  
+	// pParam 可以用来传递数据给线程  
+	convert_task* th_task =(convert_task*)pParam;
+
+	std::string infname_s = th_task->infname;
+	std::string midfname_s = th_task->midname;
+	std::string outfname_s = th_task->outfname;
+
+	remove(outfname_s.c_str());
+	extract_media(infname_s.c_str(), midfname_s.c_str());
+
+	int ret=cmd_convert(midfname_s.c_str(), outfname_s.c_str(), th_task->cv.c_str(), th_task->crf.c_str(), th_task->ca.c_str(), th_task->ba.c_str());
+
+	remove(midfname_s.c_str());
+	if (ret == 0)
+	{
+		th_task->cur_task_status = 2;
+	}
+	else
+	{
+		th_task->cur_task_status = ret;
+	}
+
+	return 0; // 线程函数的返回值将被用作线程的退出代码  
+}
+
+int cmd_convert(std::string infname, std::string outfname, std::string cv, std::string crf, std::string ca, std::string ba)
+{
+	std::string command;
+	if (cv == "copy")
+	{
+		command = "ffmpeg -i " + std::string(infname) + " -c:v copy  -c:a copy " + std::string(outfname);
+	}
+	else
+	{
+		command = "ffmpeg -i " + std::string(infname) + " -c:v " + std::string(cv) + " -crf " + std::string(crf) \
+			+ " -c:a " + std::string(ca) + " -b:a " + std::string(ba) + " " + std::string(outfname);
+	}
+	
+	// 构建FFmpeg命令
+	//ffmpeg -i input.flv -c:v libx264 -crf 23 -c:a aac -strict experimental -b:a 192k output.mp4
+	//std::string command = "ffmpeg -i " + std::string(infname) + " " + std::string(outfname)
+	// std::string command = "ffmpeg -i " + std::string(infname) + " -c:v libx264 -crf 30 -c:a aac -strict experimental -b:a 192k " + std::string(outfname);
+	//std::string command = "ffmpeg -i " + std::string(infname) + " -c:v copy  -c:a copy " + std::string(outfname);
+	//std::string command = "ffmpeg -i " + std::string(infname) + "-c:v h264_qsv -crf 23 -c:a aac -strict experimental -b:a 192k " + std::string(outfname);
+	//-c:v h264_qsv
+	// 执行命令
+	int ret = std::system(command.c_str());
+	//Sleep(10000);
+	
+	//int ret = 0;
+	if (ret == 0) {
+		std::cout << "转换成功" << std::endl;
+		return 0;
+	}
+	else {
+		std::cout << "转换失败，错误码：" << ret << std::endl;
+		return 3;
+	}
+
+
+}
+
+
+void CconvertDlg::UpdateSelectedList()
+{
+	m_selected_list.ResetContent();
+	for (int i = 0; i < select_list.size(); i++)
+	{
+		m_selected_list.InsertString(-1, select_list[i].c_str());
+	}
+}
+
+void CconvertDlg::OnLbnSelchangeSearchList()
+{
+	// TODO: 在此添加控件通知处理程序代码
+}
+
+
+
+
+void CconvertDlg::OnBnClickedButtonClear4()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	m_failed_list.ResetContent();
+	fail_list.clear();
+	fail_list_f.clear();
+//	UpdateSelectedList();
+	UpdateFailedList();
+}
+void CconvertDlg::UpdateFailedList()
+{
+	m_failed_list.ResetContent();
+	for (int i = 0; i < fail_list.size(); i++)
+	{
+		m_failed_list.InsertString(-1, fail_list[i].c_str());
+	}
+}
+
+void CconvertDlg::OnBnClickedButtonBack()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	for (int i = 0; i < fail_list.size(); i++)	{
+	
+		select_list.push_back(fail_list[i]);
+		select_list_f.push_back(fail_list_f[i]);
+	}
+	m_failed_list.ResetContent();
+	fail_list.clear();
+	fail_list_f.clear();
+	UpdateSelectedList();
+	UpdateFailedList();
+}
+
