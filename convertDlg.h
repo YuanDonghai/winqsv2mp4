@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <ShlObj.h>  
+#include <ShlObj.h>
 
 #pragma comment(lib, "Shell32.lib") 
 
@@ -59,6 +59,7 @@ protected:
 	CString SaveFolder;
 
 	std::vector<std::wstring> search_list;
+	std::vector<std::wstring> search_list_aqyname;
 	std::vector<std::wstring> filter_list;
 	std::vector<std::wstring> select_list;
 	std::vector<std::wstring> fail_list;
@@ -113,7 +114,15 @@ public:
 	afx_msg void OnBnClickedButtonBack();
 
 
+	CButton m_with_aqi_name;
+	CButton m_show_name;
+	afx_msg void OnBnClickedButton1();
 };
 
 UINT ConvertThread(LPVOID pParam);
 int cmd_convert(std::string infname, std::string outfname, std::string cv, std::string crf, std::string ca, std::string ba);
+int hex_char_to_int(char c);
+void serialized_unicode_to_utf16(const char* serialized_unicode, int len, char* ch_out);
+int read_aqi_file_vedio_name(std::wstring wfname, std::wstring& dirname, std::wstring& vname);
+std::wstring gbk_to_wstring(const char* utf8Str);
+int get_aqy_file_v_name_with_path(std::wstring wfname, std::wstring if_name, std::wstring& dirname, std::wstring& vname);

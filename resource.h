@@ -28,7 +28,10 @@
 #define IDC_COMBO_BA                    1018
 #define IDC_BUTTON_BACK                 1019
 #define IDC_BUTTON_CONVERT2             1020
-#define IDC_BUTTON_CONVERT3             1021
+#define IDC_CHECK_RENAME2               1020
+#define IDC_CHECK_SHOW_NAME             1021
+#define IDC_CHECK_SAME_PATH2            1022
+#define IDC_BUTTON1                     1023
 
 // Next default values for new objects
 // 
@@ -36,7 +39,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        131
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1017
+#define _APS_NEXT_CONTROL_VALUE         1024
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
